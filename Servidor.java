@@ -12,6 +12,7 @@ public class Servidor {
     private static Set<String> nombresUsuarios = new HashSet<>();
     private static Map<String, PrintWriter> escritoresClientes = new HashMap<>();
 
+
     public static void main(String[] args) {
         System.out.println("El servidor está en funcionamiento...");
         try (ServerSocket socketServidor = new ServerSocket(PUERTO)) {
@@ -31,7 +32,55 @@ public class Servidor {
         public ManejadorCliente(Socket socket) {
             this.socket = socket;
         }
-
+        public void interaccionCliente(String mensaje){
+            BufferedReader lector = null;
+            try {
+                System.out.println(mensaje);
+                System.out.println("-----------------------------------------------------");
+                lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                escritor = new PrintWriter(socket.getOutputStream(), true);
+                escritor.println(rsa.keyToString(clavesUsuarios.get(mensaje)));
+                System.out.println(rsa.keyToString(clavesUsuarios.get(mensaje)));
+                System.out.println("---------------------------------------------");
+                mensaje = null;
+                String destinatario = lector.readLine();
+                System.out.println(destinatario);
+                System.out.println("-------------------------");
+                String claveSimetrica = lector.readLine();
+                System.out.println(claveSimetrica);
+                System.out.println("-----------------------------------------------------");
+                String firma = lector.readLine();
+                System.out.println(firma);
+                System.out.println("-----------------------------------------------------");
+                String msjClavePublica = lector.readLine();
+                System.out.println(msjClavePublica);
+                System.out.println("-----------------------------------------------------");
+                String claveOrigen = lector.readLine();
+                System.out.println(msjClavePublica);
+                System.out.println("------------------------------------------------------");
+                PrintWriter escritorDestinatario = escritoresClientes.get(destinatario);
+                if (escritorDestinatario != null) {
+                    System.out.println("ENVIA EL SERVIDOR");
+                    escritorDestinatario.println(nombreUsuario);
+                    System.out.println(nombreUsuario);
+                    System.out.println("-----------------------------------------------");
+                    escritorDestinatario.println(claveSimetrica);
+                    System.out.println(claveSimetrica);
+                    System.out.println("-----------------------------------------------");
+                    escritorDestinatario.println(firma);
+                    System.out.println(firma);
+                    System.out.println("------------------------------------------------");;
+                    escritorDestinatario.println(msjClavePublica);
+                    System.out.println(msjClavePublica);
+                    System.out.println("-----------------------------------------------------");
+                    escritorDestinatario.println(claveOrigen);
+                    System.out.println(claveOrigen);
+                    System.out.println("-------------------------------------------------------");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         public void run() {
             try {
                 BufferedReader lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -56,35 +105,7 @@ public class Servidor {
 
                 String mensaje;
                 while ((mensaje = lector.readLine()) != null){
-                    escritor.println(rsa.keyToString(clavesUsuarios.get(mensaje)));
-                    mensaje = null;
-                    String destinatario = lector.readLine();
-                    System.out.println(destinatario);
-                    String firma = lector.readLine();
-                    System.out.println(firma);
-                    System.out.println("-----------------------------------------------------");
-                    String msjClavePublica = lector.readLine();
-                    System.out.println(msjClavePublica);
-                    System.out.println("-----------------------------------------------------");
-                    String claveOrigen = lector.readLine();
-                    System.out.println(msjClavePublica);
-                    System.out.println("------------------------------------------------------");
-                    PrintWriter escritorDestinatario = escritoresClientes.get(destinatario);
-                    if (escritorDestinatario != null) {
-                        System.out.println("ENVIA EL SERVIDOR");
-                        escritorDestinatario.println(nombreUsuario);
-                        System.out.println(nombreUsuario);
-                        System.out.println("-----------------------------------------------");
-                        escritorDestinatario.println(firma);
-                        System.out.println(firma);
-                        System.out.println("------------------------------------------------");;
-                        escritorDestinatario.println(msjClavePublica);
-                        System.out.println(msjClavePublica);
-                        System.out.println("-----------------------------------------------------");
-                        escritorDestinatario.println(claveOrigen);
-                        System.out.println(claveOrigen);
-                        System.out.println("-------------------------------------------------------");
-                    }
+                    interaccionCliente(mensaje);
                 }
                 /*while ((mensaje = lector.readLine()) != null) {
                     if (mensaje.startsWith("@")) {
